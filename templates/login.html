@@ -1,0 +1,146 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="{% static 'style/login.css' %}">
+    <link rel="stylesheet" href="{% static 'style/index.css' %}">
+    <link rel="stylesheet" href="{% static 'style/bulma.min.css' %}">
+
+    <script defer src="{% static 'javascript/all.js' %}"></script>
+    <script src="{% static 'javascript/vue.js' %}"></script>
+    <script src="{% static 'javascript/index.js' %}"></script>
+    <script src="{% static 'javascript/jquery.min.js' %}"></script>
+</head>
+<body>
+<!-- <div class="container is-fullhd">
+  <div ></div>
+</div> -->
+<div id="app" class="background">
+    <el-container>
+        <el-main>
+            <div class="logo"></div>
+            <div class="login_frame">
+                <el-form :model="loginForm" status-icon :rules="rule" ref="loginForm" class="demo-ruleForm">
+                    <div class="columns">
+                        <div class="column is-2"></div>
+                        <div class="column">
+                            <el-form-item prop="useremail">
+                                <el-input
+                                        v-model="loginForm.useremail"
+                                        placeholder="username or email address"
+{#                                        prefix-icon="el-icon-info"#}
+                                        clearable
+                                        class="margin"
+                                        autocomplete="off"></el-input>
+                            </el-form-item>
+                            <el-form-item prop="password">
+                                <el-input
+                                        v-model="loginForm.password"
+                                        type="password"
+                                        placeholder="password"
+{#                                        prefix-icon="el-icon-question"#}
+                                        clearable
+                                        class="margin"
+                                        autocomplete="off"></el-input>
+                            </el-form-item>
+                            <br class="br">
+                            <el-form-item >
+                                <el-button
+                                        type="primary"
+                                        class="loginbutton"
+                                        @click="submitForm('loginForm')">LOG IN
+                                </el-button>
+                            </el-form-item>
+                            <br>
+                            <hr style="height:1px;border:none;border-top:1px solid #000000;">
+                            <br>
+                            <el-form-item>
+                                <el-button
+                                        class="loginbutton" @click="register()">REGISTER
+                                </el-button>
+                            </el-form-item>
+
+                        </div>
+                        <div class="column is-2"></div>
+
+                    </div>
+                </el-form>
+            </div>
+        </el-main>
+    </el-container>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            var validateUseremail = (rule, value, callback) => {
+                var reg1 = new RegExp("^([a-z0-9\-_])+$");
+                var reg2 = new RegExp("^[a-z0-9]+([._\\\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$");
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else if (!reg1.test(value)&&!reg2.test(value)) {
+                    callback(new Error('please check your email address or username.'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                loginForm: {
+                    useremail: '',
+                    password: '',
+
+                },
+                rule: {
+                    useremail: [
+                        {required: true, message: 'please input a email address', trigger: 'blur'},
+                        {validator:validateUseremail , trigger: ['blur', 'change']}
+                    ],
+                    password: [
+                        {required: true, message: 'password is invalid.', trigger: 'blur'},
+                        {min: 6, message: 'password too short.', trigger: 'blur'}
+                    ]
+                }
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        var temp = this;
+                        $.ajax({
+                            url: "/login",
+                            type: "POST",
+                            data: {
+                                "email": this.loginForm.useremail,
+                                "password": this.loginForm.password
+                            },
+                            success: function (data1) {
+                                var msg = JSON.parse(data1);
+                                if (msg["msg"] == "fail") {
+                                        temp.$message.error(msg['info']);
+                                }
+                                else if(msg["msg"] == "success"){
+                                    window.location.href=("/me");
+                                }
+
+                            }
+                        })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+            register() {
+                window.location.href = ("/register");
+            }
+        }
+    })
+</script>
+</html>

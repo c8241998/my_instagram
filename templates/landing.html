@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Instagram</title>
+    <link rel="stylesheet" href={% static 'style/style.css' %}>
+    <link rel="stylesheet" href="{% static 'style/index.css' %}">
+    <link rel="stylesheet" href="{% static 'style/bulma.min.css' %}">
+
+    <script src="{% static 'javascript/vue.js' %}"></script>
+    <script src="{% static 'javascript/index.js' %}"></script>
+    <script src="{% static 'javascript/landing.js' %}"></script>
+</head>
+<body class="is-center">
+<div id="app">
+    <div align="center" class="logo">
+        <img src='/static/image/logoblue.png' style="padding:2%">
+    </div>
+    <br><br>
+    <div class="columns" style="margin-top: 5%">
+        <div class="column is-6" align="center">
+            <a class="button is-link is-outlined is-large" onclick="login()">LOG IN</a>
+        </div>
+        <div class="column is-6" align="center">
+            <a class="button is-link is-outlined is-large" onclick="register()">REGISTER</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

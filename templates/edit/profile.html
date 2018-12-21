@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>profile</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="{% static 'javascript/util.js' %}"></script>
+    <script src="{% static 'javascript/rules.js' %}"></script>
+    <script src="{% static 'javascript/validators.js' %}"></script>
+</head>
+<body>
+<div id="profile">
+    <el-form size="medium" label-position="top" status-icon label-width="100px" class="demo-ruleForm"
+             :model="data"
+             :rules="rules"
+             ref="form">
+        <div class="columns">
+            <div class="column is-1"></div>
+            <div class="column is-2">
+                <figure class="image is-80x80">
+                    <img class="is-rounded" src="{{ user.photo.url }}">
+                </figure>
+            </div>
+            <div class="column is-1"></div>
+            <div class="column is-3">
+                <p style="font-size: x-large ">[[ data.username ]]</p>
+                <el-upload
+                        action="/edit/photo"
+                        :before-upload="check">
+                    <el-button type="text">Upload Profile Photo</el-button>
+                </el-upload>
+            </div>
+        </div>
+        <div>
+            <el-form-item label="Email" prop="email">
+                <el-input v-model="data.email" autocomplete="off" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="Website" prop="website">
+                <el-input v-model="data.website" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="Description" prop="description">
+                <el-input v-model="data.description" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="Phone" prop="phone">
+                <el-input v-model="data.phone" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="Sex" prop="sex">
+                <el-select v-model="data.sex" placeholder="unknown">
+                    <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item style="float:right">
+                <el-button type="primary" @click="edit()">Submit</el-button>
+            </el-form-item>
+        </div>
+    </el-form>
+</div>
+</body>
+<script>
+    new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#profile',
+        data() {
+            return {
+                data: {
+                    username: '{{ user.username }}',
+                    email: '{{ user.email }}',
+                    website: '{{ user.website }}',
+                    description: '{{ user.description }}',
+                    phone: '{{ user.phone }}',
+                    sex: '{{ user.sex }}'
+                },
+                rules: {
+                    website: [validator_rule(validateWebsite)],
+                    description: [validator_rule(validateDescription)],
+                    phone: [validator_rule(validatePhone)],
+                    sex: [validator_rule(validateSex)],
+                },
+                options: [{
+                    value: 'unknown',
+                    label: 'unknown'
+                }, {
+                    value: 'male',
+                    label: 'male'
+                }, {
+                    value: 'female',
+                    label: 'female'
+                }]
+            };
+        },
+        methods: {
+            edit() {
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        post(this, '/edit/profile');
+                    } else return false;
+                })
+            },
+            check(file) {
+                const isType = (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/gif' || file.type === 'image/bmp');
+                if (isType)
+                    return true;
+                this.$message.error('Just PNG, JPG, GIF, BMP Available!');
+                return false;
+            },
+        }
+    });
+</script>
+</html>

@@ -1,0 +1,46 @@
+python manage.py makemigrations
+python manage.py migrate
+
+CREATE TRIGGER post_auto_insert
+  AFTER INSERT
+  ON ins_post
+BEGIN
+
+  UPDATE ins_userprofile
+  SET posts = posts + 1
+  where id = new.user_id;
+
+END;
+
+CREATE TRIGGER post_auto_delete
+  AFTER DELETE
+  ON ins_post
+BEGIN
+
+  UPDATE ins_userprofile
+  SET posts = posts - 1
+  where id = old.user_id;
+
+END;
+
+CREATE TRIGGER like_auto_insert
+  AFTER INSERT
+  ON ins_like
+BEGIN
+
+  UPDATE ins_post
+  SET likes = likes + 1
+  where id = new.post_id;
+
+END;
+
+CREATE TRIGGER like_auto_delete
+  AFTER DELETE
+  ON ins_like
+BEGIN
+
+  UPDATE ins_post
+  SET likes = likes - 1
+  where id = old.post_id;
+
+END;

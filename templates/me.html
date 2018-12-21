@@ -1,0 +1,367 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>me</title>
+
+    <link rel="stylesheet" href="{% static 'style/others.css' %}">
+    <link rel="stylesheet" href="{% static 'style/mdui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'style/index.css' %}">
+    <link rel="stylesheet" href="{% static 'style/bulma.min.css' %}">
+
+    <script defer src="{% static 'javascript/all.js' %}"></script>
+    <script src="{% static 'javascript/vue.js' %}"></script>
+    <script src="{% static 'javascript/index.js' %}"></script>
+    <script src="{% static 'javascript/jquery.min.js' %}"></script>
+    <script src="{% static 'javascript/mdui.min.js' %}"></script>
+</head>
+<body>
+<div id="app">
+
+    <div>
+        <el-menu class="el-menu-demo" mode="horizontal">
+            <el-menu-item index="1"><a href="/me"><img src="/static/image/logo.jpg" width="156" height="34"></a>
+            </el-menu-item>
+            <el-menu-item index="2" style="float:left">
+                <el-input size="mini" placeholder="search" v-model="search_input" prefix-icon="el-icon-search"
+                          @keyup.enter.native="search"></el-input>
+            </el-menu-item>
+            <el-menu-item index="3" style="float:right" @click="gotome"><a class="el-icon-view"></a></el-menu-item>
+            <el-menu-item index="4" style="float:right" @click="gotosquare"><a class="el-icon-menu"></a></el-menu-item>
+        </el-menu>
+    </div>
+
+    <div class="columns">
+
+        <div class="column is-one-fifth"></div>
+        <div class="column is-8">
+
+            <div class="columns" style="margin:50px">
+                <div class="column is-6" align="center">
+                    <figure class="image is-128x128">
+                        <img class="is-rounded" src="{{ user.photo.url }}">
+                    </figure>
+                </div>
+                <div class="column is-6" align="left">
+
+                    <h4 class="title is-4">{{ user.username }}
+                        <el-tooltip class="item" effect="dark" content="logout" placement="right">
+                            <el-button circle icon="el-icon-news" style="float:right"
+                                       @click="logout"></el-button>
+                        </el-tooltip>
+
+                    </h4>
+                    <h5 class="title is-5">{{ user.email }} </h5>
+
+                    <div>
+                        <div style="float: left">{{ user.posts }} posts</div>
+                        <div style="float: right">
+                            <el-button @click="editProfile" v-show="{{ self }}">Edit Profile</el-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs is-center is-boxed">
+                <ul>
+                    <li id="tab1" class="is-active"><a @click="posts">Posts</a></li>
+                    <li id="tab2"><a @click="information">Inforamtion</a></li>
+                </ul>
+            </div>
+
+            <div v-show="tab==1" class="columns is-multiline is-mobile">
+                {% for post in posts %}
+                    <div class="column is-one-third">
+                        <el-card :body-style="{ padding: '0px' }" style="margin:5%">
+                            <img src="{{ post.img }}" class="image">
+                            <div style="padding: 14px;">
+                                <span>{{ post.description }}</span>
+                                <div class="bottom clearfix">
+                                    <time class="time">{{ post.time | date:"Y/m/d H:i" }}</time>
+                                    <el-badge :value="likes{{ post.id }}" class="item"
+                                              style="float: right;margin-right:5%;">
+                                        <el-button @click="like{{ post.id }}()" type="text">
+                                            [[post{{ post.id }}]]
+                                        </el-button>
+                                    </el-badge>
+                                </div>
+                            </div>
+                        </el-card>
+                    </div>
+                {% endfor %}
+
+
+            </div>
+
+            <div v-show="tab==2">
+                <div class="columns is-multiline" style="align-items: center">
+                    <div class="column is-6" style="margin-top:3%">
+                        <div class="mdui-textfield">
+                            <label class="mdui-textfield-label">Website</label>
+                            <input class="mdui-textfield-input" type="text" value="{{ user.website }}" disabled/>
+                        </div>
+                    </div>
+                    <div class="column is-6" style="margin-top:3%">
+                        <div class="mdui-textfield">
+                            <label class="mdui-textfield-label">Description</label>
+                            <input class="mdui-textfield-input" type="text" value="{{ user.description }}" disabled/>
+                        </div>
+                    </div>
+                    <div class="column is-6" style="margin-top:3%">
+                        <div class="mdui-textfield">
+                            <label class="mdui-textfield-label">Phone</label>
+                            <input class="mdui-textfield-input" type="text" value="{{ user.phone }}" disabled/>
+                        </div>
+                    </div>
+                    <div class="column is-6" style="margin-top:3%">
+                        <div class="mdui-textfield">
+                            <label class="mdui-textfield-label">Sex</label>
+                            <input class="mdui-textfield-input" type="text" value="{{ user.sex }}" disabled/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column is-2"></div>
+    </div>
+
+    <el-tooltip class="item" effect="dark" content="post" placement="left">
+        <button class="mdui-fab mdui-fab-fixed mdui-ripple" @click="add_on"><i
+                class="mdui-icon material-icons">add</i>
+        </button>
+    </el-tooltip>
+
+    <div id="addModal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Post</p>
+            </header>
+            <section class="modal-card-body">
+                <div class="columns">
+                    <div class="column is-4" style="text-align: center">
+                        <el-popover
+                                placement="left-start"
+                                v-bind:width="popover_width"
+                                v-model="visible_popover"
+                                trigger="hover">
+                            <img v-if="imageUrl!=''" :src="imageUrl">
+                            <p v-else>choose a picture</p>
+                            <el-upload
+                                    slot="reference"
+                                    ref="upload"
+                                    class="avatar-uploader"
+                                    action="https://jsonplaceholder.typicode.com/posts/"
+                                    :show-file-list="false"
+                                    :before-upload="beforeAvatarUpload"
+                                    :on-change="preview"
+                                    :auto-upload="false"
+                                    style="align-content: center"
+                            >
+                                <img id="avatar" v-if="imageUrl" :src="imageUrl" class="avatar">
+                                <i v-else class="el-icon-plus avatar-uploader-icon"
+                                   style="display: flex;justify-content: center;align-items: center;"></i>
+                            </el-upload>
+                        </el-popover>
+                        <el-select v-model="value" placeholder="filter" size="mini" style="margin-top: 5px">
+                            <el-option
+                                    v-for="item in options"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                            </el-option>
+                        </el-select>
+                        {#                        <el-dropdown>#}
+                        {#                            <span class="el-dropdown-link">#}
+                        {#                            Filter<i class="el-icon-arrow-down el-icon--right"></i>#}
+                        {#                            </span>#}
+                        {#                            <el-dropdown-menu slot="dropdown">#}
+                        {#                                <el-dropdown-item>raw</el-dropdown-item>#}
+                        {#                                <el-dropdown-item>grey</el-dropdown-item>#}
+                        {#                            </el-dropdown-menu>#}
+                        {#                        </el-dropdown>#}
+                    </div>
+                    <div class="column is-8">
+                        <el-input type="textarea"
+                                  :rows="10"
+                                  resize="none"
+                                  placeholder="say something..."
+                                  v-model="description">
+                        </el-input>
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot" style="justify-content: flex-end">
+                <el-button id="upload" type="primary" round @click="submitUpload">Let's go</el-button>
+                <el-button round @click="add_off">Cancel</el-button>
+            </footer>
+        </div>
+    </div>
+
+</div>
+
+</body>
+<script>
+    var vue = new Vue({
+            delimiters: ['[[', ']]'],
+            el: '#app',
+            data() {
+                return {
+                    tab: 1,
+                    imageUrl: '',
+                    visible_popover: false,
+                    popover_width: 0,
+                    fd: '',
+                    description: '',
+                    search_input: '',
+                    {% for post in posts %}
+                        post{{ post.id }}: '{{ post.like }}',
+                        likes{{ post.id }}: '{{ post.num }}',
+                    {% endfor %}
+                    options: [{
+                        value: 'RGB',
+                        label: 'raw'
+                    }, {
+                        value: 'L',
+                        label: 'grey'
+                    },
+                    ],
+                    value: 'RGB',
+                }
+            },
+            methods: {
+                logout() {
+                    window.location.href = ("/logout");
+                }
+                ,
+                editProfile() {
+                    window.location.href = ("/edit");
+                }
+                ,
+                gotome() {
+                    window.location.href = "/me";
+                },
+                gotosquare() {
+                    window.location.href = "/square";
+                },
+                posts() {
+                    document.getElementById("tab1").setAttribute("class", "is-active");
+                    document.getElementById("tab2").removeAttribute("class");
+                    this.tab = 1;
+                },
+                {% for post in posts %}
+                    like{{ post.id }}() {
+                        var fd = new FormData();
+                        fd.append("id", {{ post.id }});
+                        fd.append("like", vue.post{{ post.id }});
+                        $.ajax({
+                            url: "/like",
+                            type: "POST",
+                            processData: false,
+                            contentType: false,
+                            data: fd,
+                            success: function (data1) {
+                                var msg = JSON.parse(data1);
+                                if (msg['msg'] == "success") {
+                                    vue.post{{ post.id }} = msg['like'];
+                                    vue.likes{{ post.id }} = msg['likes']
+                                } else {
+                                    vue.$message.error(msg['info']);
+                                }
+                            }
+                        });
+                    },
+                {% endfor %}
+                information() {
+                    document.getElementById("tab2").setAttribute("class", "is-active");
+                    document.getElementById("tab1").removeAttribute("class");
+                    this.tab = 2;
+                }
+                ,
+                add_on() {
+                    document.getElementById("addModal").setAttribute("class", "modal is-active");
+                }
+                ,
+                add_off() {
+                    document.getElementById("addModal").setAttribute("class", "modal");
+                },
+                beforeAvatarUpload(file) {
+
+                    vue.fd = new FormData();
+                    vue.fd.append("file", file);
+                    vue.fd.append("description", vue.description);
+                    vue.fd.append("filter", vue.value);
+
+                    const isType = (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/gif' || file.type === 'image/bmp');
+
+                    if (!isType) {
+                        this.$message.error('Just PNG, JPG, GIF, BMP Available!');
+                        return false;
+                    }
+
+                    return true;
+                }
+                ,
+                submitUpload() {
+                    this.$refs.upload.submit();
+                    $.ajax({
+                        url: "/post",
+                        type: "POST",
+                        processData: false,
+                        contentType: false,
+                        data: vue.fd,
+                        success: function (data1) {
+                            var msg = JSON.parse(data1);
+                            if (msg["msg"] == "success") {
+                                vue.$message.success('Posted!');
+                                window.location.href = "/me";
+                            } else {
+                                vue.$message.error(msg['info']);
+                            }
+                        }
+                    });
+                }
+                ,
+                preview(file, fileList) {
+                    this.imageUrl = URL.createObjectURL(file.raw);
+                    this.popover_width = 400;
+                }
+                ,
+                search() {
+                    window.location.href = "/me?username=" + this.search_input;
+                }
+                ,
+                /*
+                async isSizeValid(file) {
+                    return await new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            let reader = new FileReader();
+                            var vue_ = this;
+                            reader.onload = function (e) {
+                                var data = e.target.result;
+                                var image = new Image();
+                                image.onload = function () {
+                                    var width = image.width;
+                                    var height = image.height;
+                                    const isSize = width <= 1000 && height <= 1000;
+                                    if (!isSize) {
+                                        resolve(false);
+                                    } else {
+                                        resolve(true);
+                                    }
+
+                                };
+                                image.src = data;
+                            };
+                            reader.readAsDataURL(file);
+                        }, 1000);
+                    })
+                },
+                 */
+            }
+        })
+    ;
+</script>
+</html>

@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'style/register.css' %}">
+    <link rel="stylesheet" href="{% static 'style/index.css' %}">
+    <link rel="stylesheet" href="{% static 'style/bulma.min.css' %}">
+
+    <script src="{% static 'javascript/vue.js' %}"></script>
+    <script src="{% static 'javascript/index.js' %}"></script>
+    <script src="{% static 'javascript/jquery.min.js' %}"></script>
+    <script defer src="{% static 'javascript/all.js' %}"></script>
+</head>
+<body>
+<div id="app" class="background">
+    <el-container>
+        <el-main>
+            <div class="logo"></div>
+            <div class="register_frame">
+                <el-form :model="registerForm" status-icon :rules="rule" ref="registerForm" class="demo-ruleForm">
+                    <div class="columns">
+                        <div class="column is-2"></div>
+                        <div class="column">
+                            <el-form-item prop="useremail">
+                                <el-input
+                                        v-model="registerForm.useremail"
+                                        placeholder="email address"
+                                        clearable></el-input>
+                            </el-form-item>
+                            <el-form-item prop="username">
+                                <el-input
+                                        v-model="registerForm.username"
+                                        placeholder="username (allows a-z, 0-9, - and _)"
+                                        clearable></el-input>
+                            </el-form-item>
+                            <el-form-item prop="pass">
+                                <el-input
+                                        v-model="registerForm.pass"
+                                        placeholder="password"
+                                        clearable
+                                        autocomplete="off"
+                                        type="password"></el-input>
+                            </el-form-item>
+                            <el-form-item prop="checkpass">
+                                <el-input
+                                        v-model="registerForm.checkpass"
+                                        placeholder="input your password again"
+                                        clearable
+                                        autocomplete="off"
+                                        type="password"></el-input>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button class="registerbutton" @click="submitForm('registerForm')">REGISTER
+                                </el-button>
+                            </el-form-item>
+                            <hr style="height:1px;border:none;border-top:1px solid #000000;">
+                            <br>
+                            <el-form-item>
+                                <el-button type="primary" class="registerbutton" @click="login">LOG IN</el-button>
+                            </el-form-item>
+                        </div>
+                        <div class="column is-2"></div>
+                    </div>
+                </el-form>
+            </div>
+        </el-main>
+    </el-container>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            var validateUsername = (rule, value, callback) => {
+                var reg = new RegExp("^([a-z0-9\-_])+$");
+                if (value === '') {
+                    callback(new Error('empty'));
+                }
+                else if (!reg.test(value)) {
+                    callback(new Error('username has illegal characters.'));
+                }
+                else {
+                    callback();
+                }
+            };
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else {
+                    if (this.registerForm.checkpass !== '') {
+                        this.$refs.registerForm.validateField('checkpass');
+                    }
+                    if (value.length < 6) {
+                        callback(new Error('password too short.'))
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else if (value !== this.registerForm.pass) {
+                    callback(new Error('password mismatch.'));
+                } else {
+                    callback();
+                }
+            };
+            var validateEmail = (rule, value, callback) => {
+                var reg = new RegExp("^[a-z0-9]+([._\\\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$")
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else if (!reg.test(value)) {
+                    callback(new Error('please check your email address.'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                registerForm: {
+                    useremail: '',
+                    username: '',
+                    pass: '',
+                    checkpass: '',
+                },
+                rule: {
+                    useremail: [
+                        {validator:validateEmail ,trigger: 'blur'}
+                    ],
+                    username: [
+                        {validator: validateUsername, trigger: 'blur'}
+                    ],
+                    pass: [
+                        {validator: validatePass, trigger: 'blur'}
+                    ],
+                    checkpass: [
+                        {validator: validatePass2, trigger: 'blur'}
+                    ]
+                }
+            }
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        var temp =this;
+                        $.ajax({
+                            url: "/register",
+                            type: "POST",
+                            data: {"email": this.registerForm.useremail, "password": this.registerForm.pass,"username":this.registerForm.username},
+                            success: function (data1) {
+                                var msg = JSON.parse(data1);
+                                if (msg["msg"] == "success") {
+                                    temp.$message({
+                                        message: 'You have successfully registered!',
+                                        type: 'success'
+                                    });
+                                    temp.login();
+                                }
+                                else if(msg["msg"]=="fail"){
+                                    temp.$message.error(msg['info']);
+                                }
+                            }
+                        })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+            login() {
+                window.location.href = ("/login");
+            }
+        }
+    })
+</script>
+</html>

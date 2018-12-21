@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>menu</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="{% static 'javascript/util.js' %}"></script>
+</head>
+<body>
+<el-menu id="menu_bar" class="el-menu-demo" mode="horizontal">
+    <el-menu-item index="1" onclick="jump('me')"><img src="/static/image/logo.jpg" width="156" height="34"></a>
+    </el-menu-item>
+    <el-menu-item index="2" style="float:left">
+        <el-input size="mini" placeholder="search" v-model="search_input" prefix-icon="el-icon-search"
+                  @keyup.enter.native="search"></el-input>
+    </el-menu-item>
+    <el-menu-item index="3" style="float:right" onclick="jump('me')"><a class="el-icon-view"></a></el-menu-item>
+    <el-menu-item index="4" style="float:right" onclick="jump('square')"><a class="el-icon-menu"></a>
+    </el-menu-item>
+</el-menu>
+</body>
+<script>
+    new Vue({
+        el: '#menu_bar',
+        data() {
+            return {
+                search_input: '',
+            };
+        },
+        methods: {
+            search() {
+                window.location.href = "/me?username=" + this.search_input;
+            },
+        }
+    });
+</script>
+</html>

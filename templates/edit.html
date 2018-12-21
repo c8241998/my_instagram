@@ -1,0 +1,451 @@
+{% load static %}
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Profile</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="{% static 'style/index.css' %}">
+    <link rel="stylesheet" href="{% static 'style/bulma.min.css' %}">
+
+    <script defer src="{% static 'javascript/all.js' %}"></script>
+    <script src="{% static 'javascript/vue.js' %}"></script>
+    <script src="{% static 'javascript/index.js' %}"></script>
+    <script src="{% static 'javascript/jquery.min.js' %}"></script>
+
+</head>
+<body>
+<div id="app">
+
+    <div>
+        <el-menu class="el-menu-demo" mode="horizontal">
+            <el-menu-item index="1"><a href="/me"><img src="/static/image/logo.jpg" width="156" height="34"></a>
+            </el-menu-item>
+            <el-menu-item index="2" style="float:left">
+                <el-input size="mini" placeholder="search" v-model="search_input" prefix-icon="el-icon-search"
+                          @keyup.enter.native="search"></el-input>
+            </el-menu-item>
+            <el-menu-item index="3" style="float:right" @click="gotome"><a class="el-icon-view"></a></el-menu-item>
+            <el-menu-item index="4" style="float:right" @click="gotosquare"><a class="el-icon-menu"></a></el-menu-item>
+        </el-menu>
+    </div>
+
+    <div style="margin-left: 20%;margin-right: 20%;margin-top: 5%;">
+        <el-container style="height: 755px; border: 1px solid 	#D8D8D8">
+            <el-aside width="200px" style="background-color: white ">
+                <el-menu>
+                    <el-menu-item index="1" @click="show=1">Edit Profile</el-menu-item>
+                    <el-menu-item index="2" @click="show=2">Change Email</el-menu-item>
+                    <el-menu-item index="3" @click="show=3">Change Username</el-menu-item>
+                    <el-menu-item index="4" @click="show=4">Change Password</el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-main style="background-color: white ;border-left: 1px solid  #D8D8D8; margin-top: 2%;">
+                <el-form v-show="show==1" size="medium" label-position="top" :model="profile" status-icon
+                         :rules="rulesProfile"
+                         ref="profileForm" label-width="100px"
+                         class="demo-ruleForm">
+                    <div class="columns">
+                        <div class="column is-1"></div>
+                        <div class="column is-2">
+                            <figure class="image is-80x80">
+                                <img class="is-rounded" src="{{ user.photo.url }}">
+                            </figure>
+                        </div>
+                        <div class="column is-1"></div>
+                        <div class="column is-3">
+                            <p style="font-size: x-large ">[[ profile.username ]]</p>
+                            <el-upload
+                                    action="/uploadphoto"
+                                    :on-success="photosuccess"
+                                    :before-upload="photobefore">
+                                <el-button type="text">Upload Profile Photo</el-button>
+                            </el-upload>
+                        </div>
+                    </div>
+                    <div>
+                        <el-form-item label="Email" prop="email">
+                            <el-input v-model="profile.email" autocomplete="off" disabled></el-input>
+                        </el-form-item>
+                        <el-form-item label="Website" prop="website">
+                            <el-input v-model="profile.website" autocomplete="off"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Description" prop="description">
+                            <el-input v-model="profile.description" autocomplete="off"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Phone" prop="phone">
+                            <el-input v-model="profile.phone" autocomplete="off"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Sex" prop="sex">
+                            <el-select v-model="profile.sex" placeholder="unknown">
+                                <el-option
+                                        v-for="item in options"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item style="float:right">
+                            <el-button type="primary" @click="submitForm('profileForm')">Submit</el-button>
+                        </el-form-item>
+                    </div>
+
+
+                </el-form>
+                <el-form v-show="show==2" size="medium" label-position="top" :model="changeEmailForm" status-icon
+                         :rules="rulesEmail"
+                         ref="changeEmailForm" label-width="100px"
+                         class="demo-ruleForm">
+                    <el-form-item label="New Email" prop="email">
+                        <el-input v-model="changeEmailForm.email" autocomplete="off"></el-input>
+                    </el-form-item>
+                    </br>
+                    <el-form-item style="float:right">
+                        <el-button type="primary" @click="submitForm('changeEmailForm')">Change Email</el-button>
+                        <el-button @click="resetForm('changeEmailForm')">Reset</el-button>
+                    </el-form-item>
+                </el-form>
+                <el-form v-show="show==3" size="medium" label-position="top" :model="changeUsernameForm" status-icon
+                         :rules="rulesUsername"
+                         ref="changeUsernameForm" label-width="100px"
+                         class="demo-ruleForm">
+                    <el-form-item label="New Username" prop="username">
+                        <el-input v-model="changeUsernameForm.username" autocomplete="off"></el-input>
+                    </el-form-item>
+                    </br>
+                    <el-form-item style="float:right">
+                        <el-button type="primary" @click="submitForm('changeUsernameForm')">Change Username</el-button>
+                        <el-button @click="resetForm('changeUsernameForm')">Reset</el-button>
+                    </el-form-item>
+                </el-form>
+                <el-form v-show="show==4" size="medium" label-position="top" :model="changePassForm" status-icon
+                         :rules="rulesPass"
+                         ref="changePassForm" label-width="100px"
+                         class="demo-ruleForm"
+                >
+                    <el-form-item label="Old Password" prop="oldPass">
+                        <el-input type="password" v-model="changePassForm.oldPass" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="New Password" prop="pass">
+                        <el-input type="password" v-model="changePassForm.pass" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Password Confirmation" prop="checkPass">
+                        <el-input type="password" v-model="changePassForm.checkPass" autocomplete="off"></el-input>
+                    </el-form-item>
+                    </br>
+                    <el-form-item style="float:right">
+                        <el-button type="primary" @click="submitForm('changePassForm')">Change Password</el-button>
+                        <el-button @click="resetForm('changePassForm')">Reset</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-main>
+        </el-container>
+    </div>
+
+</div>
+
+
+</body>
+<script>
+    var vue = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data() {
+            var validateUsername = (rule, value, callback) => {
+                var reg = new RegExp("^([a-z0-9\-_])+$");
+                if (value === '') {
+                    callback(new Error('empty'));
+                }
+                else if (!reg.test(value)) {
+                    callback(new Error('username has illegal characters.'));
+                }
+                else {
+                    callback();
+                }
+            };
+            var validateOldPass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else {
+                    if (value.length < 6) {
+                        callback(new Error('password too short.'))
+                    }
+                    callback();
+                }
+            };
+            var validateNewPass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else {
+                    {#if (this.changePassForm.pass !== '') {#}
+                    {#    this.$refs.changePassForm.validateField('pass');#}
+
+                    if (value.length < 6) {
+                        callback(new Error('password too short.'))
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else if (value !== this.changePassForm.pass) {
+                    callback(new Error('password mismatch.'));
+                } else {
+                    callback();
+                }
+            };
+            var validateEmail = (rule, value, callback) => {
+                var reg = new RegExp("^[a-z0-9]+([._\\\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$")
+                if (value === '') {
+                    callback(new Error('empty'));
+                } else if (!reg.test(value)) {
+                    callback(new Error('please check your email address.'));
+                } else {
+                    callback();
+                }
+            };
+            var validateWebsite = (rule, value, callback) => {
+                if (value === '') callback();
+                var patt = /^(?=^.{3,255}$)(http(s)?:\/\/)?(www\.)?[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:\d+)*(\/\w+\.\w+)*$/;
+                if (!patt.test(value)) {
+                    callback(new Error('invalid website.'));
+                } else {
+                    callback();
+                }
+            };
+            var validateDescripton = (rule, value, callback) => {
+                if (value === '') callback();
+                if (value.length > 40) {
+                    callback(new Error('Length cannot exceed 40.'));
+                } else {
+                    callback();
+                }
+            };
+            var validatePhone = (rule, value, callback) => {
+                if (value === '') callback();
+                var patt = /^1(?:3\d|4[4-9]|5[0-35-9]|6[67]|7[013-8]|8\d|9\d)\d{8}$/;
+                if (!patt.test(value)) {
+                    callback(new Error('invalid phone number.'));
+                } else {
+                    callback();
+                }
+            };
+            var validateSex = (rule, value, callback) => {
+                if (value !== 'male' && value !== 'female' && value !== 'unknown') {
+                    callback(new Error('invalid sex.'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                show: 1,
+                DialogVisible: false,
+                search_input: '',
+                profile: {
+                    username: 'unknown',
+                    email: 'unknown',
+                    website: '',
+                    description: '',
+                    phone: '',
+                    sex: 'unknown'
+                },
+                changePassForm: {
+                    oldPass: '',
+                    pass: '',
+                    checkPass: ''
+                },
+                changeEmailForm: {
+                    email: ''
+                },
+                changeUsernameForm: {
+                    username: ''
+                },
+                rulesProfile: {
+                    website: [{validator: validateWebsite, trigger: 'blur'}],
+                    description: [{validator: validateDescripton, trigger: 'blur'}],
+                    phone: [{validator: validatePhone, trigger: 'blur'}],
+                    sex: [{validator: validateSex, trigger: 'blur'}]
+                },
+                rulesPass: {
+                    oldPass: [
+                        {required: true, validator: validateOldPass, trigger: 'blur'}
+                    ],
+                    pass: [
+                        {required: true, validator: validateNewPass, trigger: 'blur'}
+                    ],
+                    checkPass: [
+                        {required: true, validator: validatePass2, trigger: 'blur'}
+                    ]
+                },
+                rulesEmail: {
+                    email: [{required: true, validator: validateEmail, trigger: 'blur'}]
+                },
+                rulesUsername: {
+                    username: [{required: true, validator: validateUsername, trigger: 'blur'}]
+                },
+                options: [{
+                    value: 'unknown',
+                    label: 'unknown'
+                }, {
+                    value: 'male',
+                    label: 'male'
+                }, {
+                    value: 'female',
+                    label: 'female'
+                }]
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        if (formName == "changePassForm") {
+                            var temp = this;
+                            $.ajax({
+                                url: "/me/changePassword",
+                                type: "POST",
+                                data: {"oldPass": this.changePassForm.oldPass, "newPass": this.changePassForm.pass},
+                                success: function (data1) {
+                                    var msg = JSON.parse(data1);
+                                    if (msg["msg"] == "success") {
+                                        temp.$message({
+                                            message: 'You have successfully changed your password!',
+                                            type: 'success'
+                                        });
+                                        temp.logout();
+                                    }
+                                    else if (msg["msg"] == "fail") {
+                                        temp.$message.error('invalid password.');
+                                    }
+                                }
+                            })
+                        }
+                        else if (formName == "changeEmailForm") {
+                            var temp = this;
+                            $.ajax({
+                                url: "/me/changeEmail",
+                                type: "POST",
+                                data: {"email": this.changeEmailForm.email},
+                                success: function (data1) {
+                                    var msg = JSON.parse(data1);
+                                    if (msg["msg"] == "success") {
+                                        temp.$message({
+                                            message: 'You have successfully changed your email!',
+                                            type: 'success'
+                                        });
+                                    }
+                                    else if (msg["msg"] == "fail") {
+                                        temp.$message.error(msg['info']);
+                                    }
+                                },
+                                error: function (data2) {
+                                    temp.$message.error('server error!');
+                                }
+                            })
+                        }
+                        else if (formName == 'profileForm') {
+                            var temp = this;
+                            $.ajax({
+                                url: "/me/changeProfile",
+                                type: "POST",
+                                data: {
+                                    "website": this.profile.website, "description": this.profile.description,
+                                    "phone": this.profile.phone, "sex": this.profile.sex
+                                },
+                                success: function (data1) {
+                                    var msg = JSON.parse(data1);
+                                    if (msg["msg"] == "success") {
+                                        temp.$message({
+                                            message: 'You have successfully changed your profile!',
+                                            type: 'success'
+                                        });
+                                    }
+                                    else if (msg["msg"] == "fail") {
+                                        temp.$message.error(msg['info']);
+                                    }
+                                },
+                                error: function (data2) {
+                                    temp.$message.error('server error!');
+                                }
+                            })
+                        }
+                        else if (formName == 'changeUsernameForm') {
+                            var temp = this;
+                            $.ajax({
+                                url: "/me/changeUsername",
+                                type: "POST",
+                                data: {
+                                    "username": this.changeUsernameForm.username
+                                },
+                                success: function (data1) {
+                                    var msg = JSON.parse(data1);
+                                    if (msg["msg"] == "success") {
+                                        temp.$message({
+                                            message: 'You have successfully changed your username!',
+                                            type: 'success'
+                                        });
+                                    }
+                                    else if (msg["msg"] == "fail") {
+                                        temp.$message.error(msg['info']);
+                                    }
+                                },
+                                error: function (data2) {
+                                    temp.$message.error('server error!');
+                                }
+                            })
+                        }
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+
+                this.$refs[formName].resetFields();
+            },
+            logout() {
+                window.location.href = ("/logout");
+            },
+            editProfile() {
+                window.location.href = ("/edit");
+            },
+            photosuccess() {
+                this.$message.success('update profile photo success!');
+                window.location.href("/edit");
+            },
+            photobefore(file) {
+                const isType = (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/gif' || file.type === 'image/bmp');
+
+                if (!isType) {
+                    this.$message.error('Just PNG, JPG, GIF, BMP Available!');
+                    return false;
+                }
+
+                return true;
+            },
+            search() {
+                window.location.href = "/me?username=" + this.search_input;
+            }
+            ,
+            gotome() {
+                window.location.href = "/me";
+            },
+            gotosquare() {
+                window.location.href = "/square";
+            },
+        }
+    });
+
+    vue.profile.username = '{{ user.username }}';
+    vue.profile.email = '{{ user.email }}';
+    vue.profile.website = '{{ user.website }}';
+    vue.profile.description = '{{ user.description }}';
+    vue.profile.phone = '{{ user.phone }}';
+    vue.profile.sex = '{{ user.sex }}';
+
+</script>
+</html>

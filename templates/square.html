@@ -1,0 +1,221 @@
+{% load static %}
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>square</title>
+
+    <link rel="stylesheet" href="{% static 'style/others.css' %}">
+    <link rel="stylesheet" href="{% static 'style/mdui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'style/index.css' %}">
+    <link rel="stylesheet" href="{% static 'style/bulma.min.css' %}">
+
+    <script defer src="{% static 'javascript/all.js' %}"></script>
+    <script src="{% static 'javascript/vue.js' %}"></script>
+    <script src="{% static 'javascript/index.js' %}"></script>
+    <script src="{% static 'javascript/jquery.min.js' %}"></script>
+    <script src="{% static 'javascript/mdui.min.js' %}"></script>
+
+</head>
+
+<body>
+<div id="app">
+
+    <div>
+        <el-menu class="el-menu-demo" mode="horizontal">
+            <el-menu-item index="1"><a href="/me"><img src="/static/image/logo.jpg" width="156" height="34"></a>
+            </el-menu-item>
+            <el-menu-item index="2" style="float:left">
+                <el-input size="mini" placeholder="search" v-model="search_input" prefix-icon="el-icon-search"
+                          @keyup.enter.native="search"></el-input>
+            </el-menu-item>
+            <el-menu-item index="3" style="float:right" @click="gotome"><a class="el-icon-view"></a></el-menu-item>
+            <el-menu-item index="4" style="float:right" @click="gotosquare"><a class="el-icon-menu"></a></el-menu-item>
+        </el-menu>
+    </div>
+
+    <div class="columns">
+        <div class="column is-one-fifth"></div>
+        <div class="column is-8">
+            <div>
+                <div class="columns">
+                    <div class="column is-6">
+                        <h1 class="title is-1" style="float:left;margin-top: 6%;">Square</h1>
+                    </div>
+                    <div class="column is-6">
+                        <figure class="image is-64x64" style="float:right;margin-top: 6%;margin-right:4%;">
+                            <img class="is-rounded" src="{{ user.photo.url }}">
+                        </figure>
+                    </div>
+
+                </div>
+                <div class="mdui-divider" style="margin-top: 0;margin-bottom: 3%;"></div>
+            </div>
+
+            <div class="columns is-multiline is-mobile">
+
+                {% for post in posts %}
+                    <div class="column is-one-third">
+                        <el-card :body-style="{ padding: '0px' }" style="margin:5%">
+                            <img src="{{ post.img }}" class="image">
+                            <div style="padding: 14px;">
+                                <div>
+                                    <span>@{{ post.username }}</span>
+                                </div>
+                                <div>
+                                    <span>{{ post.description }}</span>
+                                </div>
+                                <div class="bottom clearfix">
+                                    <time class="time">{{ post.time | date:"Y/m/d H:i" }}</time>
+                                    <el-badge :value="likes{{ post.id }}" class="item"
+                                              style="float: right;margin-right:5%;">
+                                        <el-button @click="like{{ post.id }}()" type="text">
+                                            [[post{{ post.id }}]]
+                                        </el-button>
+                                    </el-badge>
+                                </div>
+                            </div>
+                        </el-card>
+                    </div>
+                {% endfor %}
+                {#                {% for post in posts %}#}
+                {#                    <div class="column is-6">#}
+                {#                        <el-card :body-style="{ padding: '0px' }" style="margin:5%">#}
+                {#                            <img src="{{ post.img }}" class="image">#}
+                {#                            <div style="padding: 14px;">#}
+                {#                                <div>#}
+                {#                                    <span>@{{ post.username }}</span>#}
+                {#                                </div>#}
+                {#                                <div>#}
+                {#                                    <span>{{ post.description }}</span>#}
+                {#                                </div>#}
+                {#                                <div class="bottom clearfix">#}
+                {#                                    <time class="time">{{ post.time | date:"Y/m/d H:i" }}</time>#}
+                {#                                    <el-badge :value="{{ post.num }}" class="item"#}
+                {#                                              style="float: right;margin-right:5%;">#}
+                {#                                        <el-button v-if="{{ post.like }}==false" type="text">like</el-button>#}
+                {#                                        <el-button v-else type="text">dislike</el-button>#}
+                {#                                    </el-badge>#}
+                {#                                </div>#}
+                {#                            </div>#}
+                {#                        </el-card>#}
+                {#                    </div>#}
+                {#                {% endfor %}#}
+            </div>
+        </div>
+        <div class="column is-2"></div>
+    </div>
+
+</div>
+
+</body>
+<script>
+    var vue = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data() {
+            return {
+                imageUrl: '',
+                visible_popover: false,
+                popover_width: 0,
+                description: '',
+                search_input: '',
+                {% for post in posts %}
+                    post{{ post.id }}: '{{ post.like }}',
+                    likes{{ post.id }}: '{{ post.num }}',
+                {% endfor %}
+            };
+        },
+        methods: {
+            logout() {
+                window.location.href = ("/logout");
+            },
+            add_on() {
+                document.getElementById("addModal").setAttribute("class", "modal is-active");
+            },
+            add_off() {
+                document.getElementById("addModal").setAttribute("class", "modal");
+            },
+            handleAvatarSuccess(res, file) {
+                this.$message.error('success!');
+            },
+            handleAvatarError(res, file) {
+                this.$message.error('fail!');
+            },
+            beforeAvatarUpload(file) {
+                const isType = (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/gif' || file.type === 'image/bmp');
+
+                if (!isType) {
+                    this.$message.error('Just PNG, JPG, GIF, BMP Available!');
+                    return false;
+                }
+
+                vue.fd = new FormData();
+                vue.fd.append("file", file);
+                vue.fd.append("description", vue.description);
+
+                return false;
+            },
+                {% for post in posts %}
+                    like{{ post.id }}() {
+                        var fd = new FormData();
+                        fd.append("id", {{ post.id }});
+                        fd.append("like", vue.post{{ post.id }});
+                        $.ajax({
+                            url: "/like",
+                            type: "POST",
+                            processData: false,
+                            contentType: false,
+                            data: fd,
+                            success: function (data1) {
+                                var msg = JSON.parse(data1);
+                                if (msg['msg'] == "success") {
+                                    vue.post{{ post.id }} = msg['like'];
+                                    vue.likes{{ post.id }} = msg['likes']
+                                } else {
+                                    vue.$message.error(msg['info']);
+                                }
+                            }
+                        });
+                    },
+                {% endfor %}
+            submitUpload() {
+                this.$refs.upload.submit();
+                $.ajax({
+                    url: "/post",
+                    type: "POST",
+                    processData: false,
+                    contentType: false,
+                    data: vue.fd,
+                    success: function (data1) {
+                        var msg = JSON.parse(data1);
+                        if (msg["msg"] == "success") {
+                            vue.$message.success('Posted!');
+                            window.location.href = "/me";
+                        } else {
+                            vue.$message.error(msg['info']);
+                        }
+                    }
+                });
+            }
+            ,
+            preview(file, fileList) {
+                this.imageUrl = URL.createObjectURL(file.raw);
+                this.popover_width = 400;
+            },
+            search() {
+                window.location.href = "/me?username=" + this.search_input;
+            }
+            ,
+            gotome() {
+                window.location.href = "/me";
+            },
+            gotosquare() {
+                window.location.href = "/square";
+            },
+        }
+    })
+</script>
+</html>
